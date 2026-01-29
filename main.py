@@ -167,11 +167,14 @@ def get_user_data(df, name_column="NAME ", dob_column="DATE OF BIRTH", phone_col
     :param phone_column: The column name for user phone numbers.
     :return: A list of dictionaries containing user data.
     """
+    # Check if DOB column exists in the DataFrame
+    has_dob_column = dob_column in df.columns
+    
     users = []
     for index, row in df.iterrows():
         user = {
             "name": str(row[name_column]).strip() if pd.notna(row[name_column]) else "",
-            "dob": str(row[dob_column]).strip() if pd.notna(row[dob_column]) else "",
+            "dob": str(row[dob_column]).strip() if has_dob_column and pd.notna(row[dob_column]) else "",
             "phone": str(row[phone_column]).strip() if pd.notna(row[phone_column]) else ""
         }
         #convert the phone number to E.164 format but remove the 0 before the first digit if it exists
@@ -183,7 +186,8 @@ def get_user_data(df, name_column="NAME ", dob_column="DATE OF BIRTH", phone_col
                 user["phone"] = "+233" + user["phone"]
         else:
             user["phone"] = ""
-        normalize_dob(user["dob"])
+        if has_dob_column:
+            normalize_dob(user["dob"])
         users.append(user)
     return users
 
@@ -220,7 +224,16 @@ def normalize_dob(dob):
 def get_users_with_today_birthday(users):
     """
     Filter users whose birthday matches today's date.
+    If no DOB data is available, return all users with valid phone numbers.
     """
+    # Check if any user has DOB data
+    has_any_dob = any(user.get("dob", "").strip() for user in users)
+    
+    # If no DOB column exists, return all users with valid phone numbers
+    if not has_any_dob:
+        print("No DOB column found. Returning all users with valid phone numbers.")
+        return [user for user in users if user.get("phone", "").strip()]
+    
     today = datetime.now().strftime("%m-%d")  # Format today's date as MM-DD
     users_with_birthday_today = []
 
