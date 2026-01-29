@@ -259,7 +259,7 @@
             <div class="info-box">
                 <h4>📋 How to use:</h4>
                 <p>
-                    1. Upload a CSV or Excel file with columns: <code>NAME </code>, <code>DATE OF BIRTH</code>, and <code>PHONE CONTACT</code><br>
+                    1. Upload a CSV or Excel file with columns: <code>NAME </code> (with trailing space), <code>DATE OF BIRTH</code>, and <code>PHONE CONTACT</code><br>
                     2. Enter your Hubtel API credentials (Client ID and Secret)<br>
                     3. Customize your birthday message (use <code>{name}</code> to personalize)<br>
                     4. Click "Send Birthday Wishes" to send SMS to today's birthday celebrants
@@ -404,7 +404,7 @@ Best wishes!</textarea>
             } catch (error) {
                 loading.classList.remove('active');
                 submitBtn.disabled = false;
-                errorMessage.textContent = `Error: ${error.message}`;
+                errorMessage.textContent = `Error: ${error.toString()}`;
                 errorMessage.classList.add('active');
             }
         });

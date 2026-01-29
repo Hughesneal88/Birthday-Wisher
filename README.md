@@ -46,7 +46,7 @@ http://localhost:5000
 
 1. **Upload Your Birthday List**
    - Prepare a CSV or Excel file with the following columns:
-     - `NAME ` (note the space after NAME)
+     - `NAME ` (note: includes a trailing space)
      - `DATE OF BIRTH`
      - `PHONE CONTACT`
    
@@ -82,9 +82,9 @@ http://localhost:5000
 
 ## File Format Requirements
 
-Your CSV or Excel file must include these columns:
+Your CSV or Excel file must include these columns (note the trailing space in NAME ):
 
-- **NAME**: The recipient's full name
+- **NAME **: The recipient's full name (column name includes a trailing space)
 - **DATE OF BIRTH**: Birthday in formats like:
   - "January 15 1990"
   - "Jan 15 1990"
@@ -107,9 +107,10 @@ Note: You'll need to place your Excel file named `To_Neal.xlsx` in the project d
 
 ## Security Notes
 
+- **API Credentials**: Your Hubtel API credentials are sent with each request but are not stored by the application. For production use, consider implementing server-side configuration with environment variables.
+- **File Upload**: The application validates file extensions and automatically deletes uploaded files after processing.
+- **Debug Mode**: Set the `FLASK_DEBUG` environment variable to `true` only in development environments. Never use debug mode in production.
 - Never commit your API credentials to version control
-- The web application does not store uploaded files permanently
-- All uploaded files are deleted after processing
 
 ## Troubleshooting
 

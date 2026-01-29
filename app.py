@@ -2,10 +2,11 @@ from flask import Flask, render_template, request, jsonify
 import os
 import pandas as pd
 from datetime import datetime
+import uuid
 from main import (
     get_user_data,
     get_users_with_today_birthday,
-    send_sms_to_birthday_users
+    send_sms_hubtel
 )
 
 app = Flask(__name__)
@@ -23,6 +24,7 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     """Handle file upload and send birthday wishes"""
+    filepath = None
     try:
         # Check if file is present
         if 'file' not in request.files:
@@ -43,18 +45,23 @@ def upload_file():
         if not all([message, client_id, client_secret, sender_id]):
             return jsonify({'error': 'All fields are required'}), 400
         
-        # Save the uploaded file
+        # Get original filename for validation
         filename = file.filename
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+        # Save the uploaded file with a secure random filename
+        file_ext = os.path.splitext(filename)[1].lower()
+        secure_filename = f"{uuid.uuid4()}{file_ext}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename)
         file.save(filepath)
         
         # Read the file based on extension
-        if filename.endswith('.csv'):
+        if file_ext == '.csv':
             df = pd.read_csv(filepath)
-        elif filename.endswith(('.xlsx', '.xls')):
+        elif file_ext in ['.xlsx', '.xls']:
             df = pd.read_excel(filepath)
         else:
-            os.remove(filepath)
+            if filepath and os.path.exists(filepath):
+                os.remove(filepath)
             return jsonify({'error': 'Invalid file format. Please upload CSV or Excel file'}), 400
         
         # Process the data
@@ -71,18 +78,35 @@ def upload_file():
                         recipient = recipient[1:]
                     
                     # Format the message with the user's name
-                    formatted_message = message.format(name=user.get("name", "Beloved"))
+                    try:
+                        formatted_message = message.format(name=user.get("name", "Beloved"))
+                    except KeyError as e:
+                        results.append({
+                            'name': user.get('name', 'Unknown'),
+                            'phone': user.get('phone', 'Unknown'),
+                            'status': 'error',
+                            'message': f'Invalid message template: missing placeholder {e}'
+                        })
+                        continue
                     
-                    # Send the SMS (this is a dry run for now)
-                    from main import send_sms_hubtel
+                    # Send the SMS
                     response = send_sms_hubtel(client_id, client_secret, sender_id, recipient, formatted_message)
                     
-                    results.append({
-                        'name': user.get('name', 'Unknown'),
-                        'phone': user.get('phone', 'Unknown'),
-                        'status': 'success',
-                        'message': 'SMS sent successfully'
-                    })
+                    # Check if response indicates success
+                    if response and isinstance(response, dict):
+                        results.append({
+                            'name': user.get('name', 'Unknown'),
+                            'phone': user.get('phone', 'Unknown'),
+                            'status': 'success',
+                            'message': 'SMS sent successfully'
+                        })
+                    else:
+                        results.append({
+                            'name': user.get('name', 'Unknown'),
+                            'phone': user.get('phone', 'Unknown'),
+                            'status': 'error',
+                            'message': 'Failed to send SMS'
+                        })
                 else:
                     results.append({
                         'name': user.get('name', 'Unknown'),
@@ -98,9 +122,6 @@ def upload_file():
                     'message': str(e)
                 })
         
-        # Clean up the uploaded file
-        os.remove(filepath)
-        
         return jsonify({
             'success': True,
             'total_users': len(users),
@@ -110,6 +131,15 @@ def upload_file():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    finally:
+        # Clean up the uploaded file
+        if filepath and os.path.exists(filepath):
+            try:
+                os.remove(filepath)
+            except Exception:
+                pass  # Ignore cleanup errors
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Use environment variable for debug mode, default to False for production
+    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug_mode, host='0.0.0.0', port=5000)
