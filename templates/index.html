@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Wisher - Send Birthday SMS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .file-upload-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9ff;
+        }
+
+        .file-upload-label:hover {
+            background: #e8ecff;
+            border-color: #764ba2;
+        }
+
+        .file-upload-label span {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .file-name {
+            margin-top: 10px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 8px;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .results h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-item.success {
+            border-left-color: #4caf50;
+        }
+
+        .result-item.error {
+            border-left-color: #f44336;
+        }
+
+        .result-item.skipped {
+            border-left-color: #ff9800;
+        }
+
+        .error-message {
+            display: none;
+            padding: 15px;
+            background: #ffebee;
+            color: #c62828;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .info-box {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .info-box h4 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: #1b5e20;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .info-box code {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎂 Birthday Wisher</h1>
+            <p>Send personalized birthday SMS messages to your contacts</p>
+        </div>
+
+        <div class="content">
+            <div class="info-box">
+                <h4>📋 How to use:</h4>
+                <p>
+                    1. Upload a CSV or Excel file with columns: <code>NAME </code>, <code>DATE OF BIRTH</code>, and <code>PHONE CONTACT</code><br>
+                    2. Enter your Hubtel API credentials (Client ID and Secret)<br>
+                    3. Customize your birthday message (use <code>{name}</code> to personalize)<br>
+                    4. Click "Send Birthday Wishes" to send SMS to today's birthday celebrants
+                </p>
+            </div>
+
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="file">Upload Birthday List (CSV or Excel)</label>
+                    <div class="file-upload">
+                        <input type="file" id="file" name="file" accept=".csv,.xlsx,.xls" required>
+                        <label for="file" class="file-upload-label">
+                            <span>📁 Click to select file or drag and drop</span>
+                        </label>
+                        <div class="file-name" id="fileName"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="client_id">Hubtel Client ID</label>
+                    <input type="text" id="client_id" name="client_id" placeholder="Enter your Hubtel Client ID" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="client_secret">Hubtel Client Secret</label>
+                    <input type="password" id="client_secret" name="client_secret" placeholder="Enter your Hubtel Client Secret" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="sender_id">Sender ID</label>
+                    <input type="text" id="sender_id" name="sender_id" placeholder="e.g., LBC or YourName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Birthday Message Template</label>
+                    <textarea id="message" name="message" placeholder="Enter your birthday message. Use {name} to personalize the message for each recipient." required>Happy Birthday {name}! 
+
+Wishing you a wonderful day filled with joy and happiness. May this year bring you success, good health, and prosperity.
+
+Best wishes!</textarea>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    🎉 Send Birthday Wishes
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 15px; color: #666;">Processing... Please wait</p>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+
+            <div class="results" id="results">
+                <h3>📊 Results</h3>
+                <div id="resultsContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('file');
+        const fileName = document.getElementById('fileName');
+        const form = document.getElementById('uploadForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const resultsContent = document.getElementById('resultsContent');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // File input change handler
+        fileInput.addEventListener('change', function(e) {
+            if (this.files.length > 0) {
+                fileName.textContent = `Selected: ${this.files[0].name}`;
+            } else {
+                fileName.textContent = '';
+            }
+        });
+
+        // Form submit handler
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Hide previous results and errors
+            results.classList.remove('active');
+            errorMessage.classList.remove('active');
+
+            // Show loading
+            loading.classList.add('active');
+            submitBtn.disabled = true;
+
+            try {
+                const formData = new FormData(form);
+                
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                loading.classList.remove('active');
+                submitBtn.disabled = false;
+
+                if (response.ok && data.success) {
+                    // Show results
+                    results.classList.add('active');
+                    
+                    let html = `
+                        <div class="result-item">
+                            <strong>📈 Summary:</strong><br>
+                            Total users in file: ${data.total_users}<br>
+                            Birthday celebrants today: ${data.birthday_users}
+                        </div>
+                    `;
+
+                    if (data.results && data.results.length > 0) {
+                        data.results.forEach(result => {
+                            html += `
+                                <div class="result-item ${result.status}">
+                                    <strong>${result.name}</strong> (${result.phone})<br>
+                                    Status: ${result.status}<br>
+                                    ${result.message}
+                                </div>
+                            `;
+                        });
+                    } else {
+                        html += `
+                            <div class="result-item">
+                                No birthday celebrants found for today.
+                            </div>
+                        `;
+                    }
+
+                    resultsContent.innerHTML = html;
+                } else {
+                    // Show error
+                    errorMessage.textContent = `Error: ${data.error || 'An error occurred'}`;
+                    errorMessage.classList.add('active');
+                }
+            } catch (error) {
+                loading.classList.remove('active');
+                submitBtn.disabled = false;
+                errorMessage.textContent = `Error: ${error.message}`;
+                errorMessage.classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html>
