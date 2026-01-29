@@ -187,7 +187,9 @@ def get_user_data(df, name_column="NAME ", dob_column="DATE OF BIRTH", phone_col
         else:
             user["phone"] = ""
         if has_dob_column:
-            normalize_dob(user["dob"])
+            normalized = normalize_dob(user["dob"])
+            if normalized:
+                user["dob"] = normalized
         users.append(user)
     return users
 
