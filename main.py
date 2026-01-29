@@ -170,9 +170,9 @@ def get_user_data(df, name_column="NAME ", dob_column="DATE OF BIRTH", phone_col
     users = []
     for index, row in df.iterrows():
         user = {
-            "name": row[name_column].strip() if pd.notna(row[name_column]) else "",
-            "dob": row[dob_column].strip() if pd.notna(row[dob_column]) else "",
-            "phone": row[phone_column].strip() if pd.notna(row[phone_column]) else ""
+            "name": str(row[name_column]).strip() if pd.notna(row[name_column]) else "",
+            "dob": str(row[dob_column]).strip() if pd.notna(row[dob_column]) else "",
+            "phone": str(row[phone_column]).strip() if pd.notna(row[phone_column]) else ""
         }
         #convert the phone number to E.164 format but remove the 0 before the first digit if it exists
         if user["phone"] and user["phone"].startswith("0"):
